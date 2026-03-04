@@ -5,6 +5,7 @@ st.title("Meine erste Streamlit App")
 # !! WICHTIG: Eure Emails müssen in der App erscheinen!!
 
 """
+Autor:
 Diese App wurde von folgenden Personen entwickelt:
 - Sara Durrer (Durrersar@students.zhaw.ch)
 - Alessandro Zandt (Zandtale@students.zhaw.ch)
@@ -12,5 +13,5 @@ Diese App wurde von folgenden Personen entwickelt:
 
 Diese App ist das leere Gerüst für die App-Entwicklung im Modul Informatik 2 (BMLD/ZHAW)
 
-Autor: Samuel Wehrli (wehs@zhaw.ch)
+Dozent: Samuel Wehrli (wehs@zhaw.ch)
 """
