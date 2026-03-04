@@ -3,7 +3,12 @@ st.title("pH-Wert Berechnung")
 
 
 
-st.write("Mit der pH Rechner App berechnest du mühelos pH-Wert, pOH-Wert sowie H₃O⁺- und OH⁻-Konzentrationen. Ideal für Schüler, Studierende, Lehrkräfte, Laborpersonal oder alle, die schnell und zuverlässig chemische Werte bestimmen möchten.")
+st.write("""
+Diese App berechnet schnell und zuverlässig den pH-Wert aus der H⁺-Konzentration sowie die H⁺-Konzentration aus einem gegebenen pH-Wert.
+
+Basierend auf der mathematischen Definition
+pH = −log₁₀([H⁺])
+liefert die Anwendung exakte Ergebnisse für chemische Berechnungen in Schule, Studium oder Labor.""")
 
 
 import streamlit as st
