@@ -1,14 +1,3 @@
-import streamlit as st
-st.title("pH-Wert Berechnung")
-
-
-
-st.write("""
-Diese App berechnet schnell und zuverlässig den pH-Wert aus der H⁺-Konzentration sowie die H⁺-Konzentration aus einem gegebenen pH-Wert.
-
-Basierend auf der mathematischen Definition
-pH = −log₁₀([H⁺])
-liefert die Anwendung exakte Ergebnisse für chemische Berechnungen in Schule, Studium oder Labor.""")
 
 
 import streamlit as st
@@ -30,24 +19,100 @@ ph_from_concentration = ph_mod.ph_from_concentration
 concentration_from_ph = ph_mod.concentration_from_ph
 
 # --- Streamlit‑UI ---
-st.title("pH‑Rechner")
+st.header("pH-Rechner")
+st.write("Berechne pH-Werte und Wasserstoffionenkonzentrationen mit Präzision")
 
-mode = st.radio("Modus wählen",
-                ("Konzentration → pH", "pH → Konzentration"))
+st.divider()
+
+st.subheader("Rechenmodi")
+st.write("Wähle den Modus für deine Berechnung:")
+
+mode = st.radio("Modus",
+                ("Konzentration → pH", "pH → Konzentration"),
+                horizontal=True)
+
+st.divider()
 
 if mode == "Konzentration → pH":
-    conc = st.number_input("Wasserstoffionenkonzentration (mol/L)",
-                           min_value=0.0, format="%.6f", step=1e-6)
+    st.subheader("Konzentration zu pH")
+    
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.write("Berechne den pH-Wert aus der Wasserstoffionenkonzentration:")
+        st.latex(r"\text{pH} = -\log_{10}([H^+])")
+    
+    with col2:
+        st.info("ℹ️ pH-Skala: 0-14")
+    
+    st.divider()
+    
+    conc = st.number_input(
+        "Wasserstoffionenkonzentration [H⁺] (mol/L)",
+        min_value=0.0, 
+        format="%.6f", 
+        step=1e-6,
+        help="Gib eine positive Konzentration im wissenschaftlichen Format ein"
+    )
+    
     if conc > 0:
         try:
             ph = ph_from_concentration(conc)
-            st.success(f"pH‑Wert: {ph:.4f}")
+            st.success(f"✅ Berechneter pH-Wert: **{ph:.4f}**")
+            
+            # Zusätzliche Informationen
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                if ph < 7:
+                    st.badge("Sauer 🔴")
+                elif ph > 7:
+                    st.badge("Basisch 🔵")
+                else:
+                    st.badge("Neutral ⚪")
+            with col2:
+                st.metric("Eingabe-Konzentration", f"{conc:.2e} mol/L")
+            with col3:
+                st.metric("Berechnung", f"-log₁₀({conc:.2e})")
+            
         except ValueError as e:
-            st.error(str(e))
+            st.error(f"❌ Fehler: {str(e)}")
     else:
-        st.info("Bitte eine positive Konzentration eingeben.")
-else:
-    ph = st.number_input("pH‑Wert", min_value=-2.0, max_value=16.0,
-                         format="%.4f", step=0.1)
+        st.info("ℹ️ Bitte eine positive Konzentration eingeben (> 0).")
+
+else:  # pH → Konzentration
+    st.subheader("pH zu Konzentration")
+    
+    col1, col2 = st.columns([2, 1])
+    with col1:
+        st.write("Berechne die Wasserstoffionenkonzentration aus dem pH-Wert:")
+        st.latex(r"[H^+] = 10^{-\text{pH}}")
+    
+    with col2:
+        st.info("ℹ️ Eingabe-Bereich: -2 bis 16")
+    
+    st.divider()
+    
+    ph = st.number_input(
+        "pH-Wert", 
+        min_value=-2.0, 
+        max_value=16.0,
+        format="%.4f", 
+        step=0.1,
+        help="Wähle einen pH-Wert zwischen -2 und 16"
+    )
+    
     conc = concentration_from_ph(ph)
-    st.success(f"Konzentration: {conc:.6e} mol/L")
+    st.success(f"✅ Wasserstoffionenkonzentration: **{conc:.2e} mol/L**")
+    
+    # Zusätzliche Informationen
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if ph < 7:
+            st.badge("Sauer 🔴")
+        elif ph > 7:
+            st.badge("Basisch 🔵")
+        else:
+            st.badge("Neutral ⚪")
+    with col2:
+        st.metric("Eingabe pH", f"{ph:.2f}")
+    with col3:
+        st.metric("Berechnung", f"10⁻{ph:.2f}")
