@@ -1,4 +1,8 @@
+import pandas as pd 
 import streamlit as st
+
+if 'data_df' not in st.session_state:
+    st.session_state['data_df'] = pd.DataFrame()
 
 st.set_page_config(
     page_title="pH-Rechner App",

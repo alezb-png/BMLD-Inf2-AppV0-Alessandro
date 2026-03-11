@@ -4,6 +4,7 @@ import streamlit as st
 from pathlib import Path
 import importlib.util
 import sys
+import pandas as pd 
 
 def _load_ph_module():
     """lädt functions/pH-Rechner.py trotz Bindestrich im Namen."""
@@ -116,3 +117,8 @@ else:  # pH → Konzentration
         st.metric("Eingabe pH", f"{ph:.2f}")
     with col3:
         st.metric("Berechnung", f"10⁻{ph:.2f}")
+
+st.session_state['data_df'] = pd.concat([st.session_state['data_df'], pd.DataFrame([result])])
+        
+# --- NEW CODE to display the history table ---
+st.dataframe(st.session_state['data_df'])
