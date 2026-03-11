@@ -7,16 +7,16 @@ def ph_from_concentration(concentration: float) -> float:
     if concentration <= 0:
         raise ValueError("Konzentration muss positiv sein")
     return {
-        "timestamp": datetime.now(pytz.timezone('Europe/Zurich')),  # Current swiss time
-        "type": "pH-Rechner",
+        "Zeitstempel": datetime.now(pytz.timezone('Europe/Zurich')),  # Current swiss time
+        "Typ der Berechnung": "pH aus H⁺-Konzentration (mol L⁻¹).",
         "Resultat": -math.log10(concentration),
     } 
 
 def concentration_from_ph(ph: float) -> float:
     """H⁺-Konzentration zu einem pH‑Wert."""
     return {
-        "timestamp": datetime.now(pytz.timezone('Europe/Zurich')),  # Current swiss time
-        "type": "H⁺-Konzentration zu einem pH‑Wert.",
+        "Zeitstempel": datetime.now(pytz.timezone('Europe/Zurich')),  # Current swiss time
+        "Typ der Berechnung": "H⁺-Konzentration zu einem pH‑Wert.",
         "Resultat": 10 ** (-ph),
     } 
 

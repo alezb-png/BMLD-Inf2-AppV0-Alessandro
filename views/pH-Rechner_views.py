@@ -57,7 +57,8 @@ if mode == "Konzentration → pH":
     
     if conc > 0:
         try:
-            ph = ph_from_concentration(conc)
+            result = ph_from_concentration(conc)
+            ph = result["Resultat"]
             st.success(f"✅ Berechneter pH-Wert: **{ph:.4f}**")
             
             # Zusätzliche Informationen
@@ -73,6 +74,8 @@ if mode == "Konzentration → pH":
                 st.metric("Eingabe-Konzentration", f"{conc:.2e} mol/L")
             with col3:
                 st.metric("Berechnung", f"-log₁₀({conc:.2e})")
+            
+            st.session_state['data_df'] = pd.concat([st.session_state['data_df'], pd.DataFrame([result])])
             
         except ValueError as e:
             st.error(f"❌ Fehler: {str(e)}")
@@ -101,7 +104,8 @@ else:  # pH → Konzentration
         help="Wähle einen pH-Wert zwischen -2 und 16"
     )
     
-    conc = concentration_from_ph(ph)
+    result = concentration_from_ph(ph)
+    conc = result["Resultat"]
     st.success(f"✅ Wasserstoffionenkonzentration: **{conc:.2e} mol/L**")
     
     # Zusätzliche Informationen
@@ -117,8 +121,8 @@ else:  # pH → Konzentration
         st.metric("Eingabe pH", f"{ph:.2f}")
     with col3:
         st.metric("Berechnung", f"10⁻{ph:.2f}")
+    
+    st.session_state['data_df'] = pd.concat([st.session_state['data_df'], pd.DataFrame([result])])
 
-st.session_state['data_df'] = pd.concat([st.session_state['data_df'], pd.DataFrame([result])])
-        
 # --- NEW CODE to display the history table ---
 st.dataframe(st.session_state['data_df'])
