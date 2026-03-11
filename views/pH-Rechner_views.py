@@ -55,32 +55,33 @@ if mode == "Konzentration → pH":
         help="Gib eine positive Konzentration im wissenschaftlichen Format ein"
     )
     
-    if conc > 0:
-        try:
-            result = ph_from_concentration(conc)
-            ph = result["Resultat"]
-            st.success(f"✅ Berechneter pH-Wert: **{ph:.4f}**")
-            
-            # Zusätzliche Informationen
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                if ph < 7:
-                    st.badge("Sauer 🔴")
-                elif ph > 7:
-                    st.badge("Basisch 🔵")
-                else:
-                    st.badge("Neutral ⚪")
-            with col2:
-                st.metric("Eingabe-Konzentration", f"{conc:.2e} mol/L")
-            with col3:
-                st.metric("Berechnung", f"-log₁₀({conc:.2e})")
-            
-            st.session_state['data_df'] = pd.concat([st.session_state['data_df'], pd.DataFrame([result])])
-            
-        except ValueError as e:
-            st.error(f"❌ Fehler: {str(e)}")
-    else:
-        st.info("ℹ️ Bitte eine positive Konzentration eingeben (> 0).")
+    if st.button("Berechnen", key="calc_ph"):
+        if conc > 0:
+            try:
+                result = ph_from_concentration(conc)
+                ph = result["Resultat"]
+                st.success(f"✅ Berechneter pH-Wert: **{ph:.4f}**")
+                
+                # Zusätzliche Informationen
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    if ph < 7:
+                        st.badge("Sauer 🔴")
+                    elif ph > 7:
+                        st.badge("Basisch 🔵")
+                    else:
+                        st.badge("Neutral ⚪")
+                with col2:
+                    st.metric("Eingabe-Konzentration", f"{conc:.2e} mol/L")
+                with col3:
+                    st.metric("Berechnung", f"-log₁₀({conc:.2e})")
+                
+                st.session_state['data_df'] = pd.concat([st.session_state['data_df'], pd.DataFrame([result])])
+                
+            except ValueError as e:
+                st.error(f"❌ Fehler: {str(e)}")
+        else:
+            st.info("ℹ️ Bitte eine positive Konzentration eingeben (> 0).")
 
 else:  # pH → Konzentration
     st.subheader("pH zu Konzentration")
@@ -104,25 +105,24 @@ else:  # pH → Konzentration
         help="Wähle einen pH-Wert zwischen -2 und 16"
     )
     
-    result = concentration_from_ph(ph)
-    conc = result["Resultat"]
-    st.success(f"✅ Wasserstoffionenkonzentration: **{conc:.2e} mol/L**")
-    
-    # Zusätzliche Informationen
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        if ph < 7:
-            st.badge("Sauer 🔴")
-        elif ph > 7:
-            st.badge("Basisch 🔵")
-        else:
-            st.badge("Neutral ⚪")
-    with col2:
-        st.metric("Eingabe pH", f"{ph:.2f}")
-    with col3:
-        st.metric("Berechnung", f"10⁻{ph:.2f}")
-    
-    st.session_state['data_df'] = pd.concat([st.session_state['data_df'], pd.DataFrame([result])])
-
-# --- NEW CODE to display the history table ---
+    if st.button("Berechnen", key="calc_conc"):
+        result = concentration_from_ph(ph)
+        conc = result["Resultat"]
+        st.success(f"✅ Wasserstoffionenkonzentration: **{conc:.2e} mol/L**")
+        
+        # Zusätzliche Informationen
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if ph < 7:
+                st.badge("Sauer 🔴")
+            elif ph > 7:
+                st.badge("Basisch 🔵")
+            else:
+                st.badge("Neutral ⚪")
+        with col2:
+            st.metric("Eingabe pH", f"{ph:.2f}")
+        with col3:
+            st.metric("Berechnung", f"10⁻{ph:.2f}")
+        
+        st.session_state['data_df'] = pd.concat([st.session_state['data_df'], pd.DataFrame([result])])
 st.dataframe(st.session_state['data_df'])
