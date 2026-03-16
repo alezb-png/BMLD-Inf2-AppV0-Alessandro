@@ -5,6 +5,7 @@ from pathlib import Path
 import importlib.util
 import sys
 import pandas as pd 
+from utils.data_manager import DataManager 
 
 def _load_ph_module():
     """lädt functions/pH-Rechner.py trotz Bindestrich im Namen."""
