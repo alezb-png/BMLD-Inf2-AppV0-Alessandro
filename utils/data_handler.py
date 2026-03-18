@@ -105,22 +105,29 @@ class DataHandler:
         Returns:
             Parsed data (e.g., DataFrame, dict, str, bytes) depending on the file type, or the initial value if provided.
         """
-        if not self.exists(relative_path):
+        try:
+            if not self.exists(relative_path):
+                if initial_value is not None:
+                    return initial_value
+                raise FileNotFoundError(f"File does not exist: {relative_path}")
+
+            ext = posixpath.splitext(relative_path)[-1].lower()
+            if ext == ".json":
+                return json.loads(self.read_text(relative_path))
+            elif ext in [".yaml", ".yml"]:
+                return yaml.safe_load(self.read_text(relative_path))
+            elif ext == ".csv":
+                return pd.read_csv(StringIO(self.read_text(relative_path)), **load_args)       
+            elif ext == ".txt":
+                return self.read_text(relative_path)
+            else:
+                return self.read_binary(relative_path)
+        except Exception as e:
+            # If any error occurs during loading (including WebDAV 404 errors),
+            # return initial_value if provided, otherwise re-raise
             if initial_value is not None:
                 return initial_value
-            raise FileNotFoundError(f"File does not exist: {relative_path}")
-
-        ext = posixpath.splitext(relative_path)[-1].lower()
-        if ext == ".json":
-            return json.loads(self.read_text(relative_path))
-        elif ext in [".yaml", ".yml"]:
-            return yaml.safe_load(self.read_text(relative_path))
-        elif ext == ".csv":
-            return pd.read_csv(StringIO(self.read_text(relative_path)), **load_args)       
-        elif ext == ".txt":
-            return self.read_text(relative_path)
-        else:
-            return self.read_binary(relative_path)
+            raise
 
     def save(self, relative_path, content):
         """
@@ -135,6 +142,10 @@ class DataHandler:
         """
         full_path = self._resolve_path(relative_path)
         parent_dir = posixpath.dirname(full_path)
+
+        # Ensure the root directory exists
+        if not self.filesystem.exists(self.root_path):
+            self.filesystem.mkdirs(self.root_path, exist_ok=True)
 
         # Ensure the parent directory exists
         if not self.filesystem.exists(parent_dir):
