@@ -1,4 +1,4 @@
-import json, yaml, posixpath
+import json, yaml, posixpath, time
 import pandas as pd
 from io import StringIO
 
@@ -70,6 +70,34 @@ class DataHandler:
         with self.filesystem.open(full_path, "rb") as f:
             return f.read()
 
+    def _write_with_retry(self, full_path, mode, content, max_retries=3, delay=1.0):
+        """
+        Write content to file with retry logic for handling locked files.
+        
+        Args:
+            full_path: Full path to the file
+            mode: File mode ('w' or 'wb')
+            content: Content to write
+            max_retries: Maximum number of retry attempts
+            delay: Delay between retries in seconds
+        """
+        last_exception = None
+        for attempt in range(max_retries + 1):
+            try:
+                with self.filesystem.open(full_path, mode, encoding='utf-8' if 'b' not in mode else None) as f:
+                    f.write(content)
+                return  # Success
+            except Exception as e:
+                last_exception = e
+                if "423" in str(e) or "Locked" in str(e):
+                    if attempt < max_retries:
+                        time.sleep(delay * (2 ** attempt))  # Exponential backoff
+                        continue
+                # If not a 423 error or max retries reached, re-raise
+                raise e
+        # If we get here, all retries failed
+        raise last_exception
+
     def write_text(self, relative_path, content):
         """
         Write text content to a file.
@@ -79,8 +107,7 @@ class DataHandler:
             content: The text content to write.
         """
         full_path = self._resolve_path(relative_path)
-        with self.filesystem.open(full_path, "w", encoding='utf-8') as f:
-            f.write(content)
+        self._write_with_retry(full_path, "w", content)
 
     def write_binary(self, relative_path, content):
         """
@@ -91,8 +118,7 @@ class DataHandler:
             content: The binary content to write.
         """
         full_path = self._resolve_path(relative_path)
-        with self.filesystem.open(full_path, "wb") as f:
-            f.write(content)
+        self._write_with_retry(full_path, "wb", content)
 
     def load(self, relative_path, initial_value=None, **load_args):
         """

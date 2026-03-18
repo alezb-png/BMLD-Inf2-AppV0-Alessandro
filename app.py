@@ -42,6 +42,7 @@ st.markdown("""
 
 pg_home = st.Page("views/home.py", title="Home", icon=":material/home:", default=True)
 pg_rechner = st.Page("views/pH-Rechner_views.py", title="pH-Rechner", icon=":material/science:")
+pg_visualizer = st.Page("views/pH-Skala-Visualizer.py", title="pH-Visualizer", icon=":material/bar_chart:")
 
-pg = st.navigation([pg_home, pg_rechner])
+pg = st.navigation([pg_home, pg_rechner, pg_visualizer])
 pg.run()
