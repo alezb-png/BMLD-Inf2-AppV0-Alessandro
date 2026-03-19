@@ -8,6 +8,6 @@ Samuel Wehrli (wehs@zhaw.ch)
 
 ## Autor
 Diese App wurde von folgenden Personen entwickelt:
-- Sara Durrer (Durrersar@students.zhaw.ch)
-- Alessandro Zandt (Zandtale@students.zhaw.ch)
-- David Hascher (Hascherdav@students.zhaw.ch)
+- Sara Durrer (durresar@students.zhaw.ch)
+- Alessandro Zandt (zandtale@students.zhaw.ch)
+- David Hascher (haschdav@students.zhaw.ch)

@@ -6,10 +6,12 @@ st.write("Eine elegante Anwendung zur Berechnung von pH-Werten und H⁺-Konzentr
 st.divider()
 
 st.subheader("Über diese App")
+st.badge("pH-Rechner")
 st.write("""
 Diese App berechnet schnell und zuverlässig den pH-Wert aus der H⁺-Konzentration sowie die H⁺-Konzentration aus einem gegebenen pH-Wert.
 """)
-
+st.badge("pH-Visualizer")
+st.write("""Der pH-Visualizer bietet eine interaktive Darstellung der pH-Skala, um das Verständnis von sauren, neutralen und basischen Lösungen zu vertiefen.""")
 st.subheader("Mathematische Grundlagen")
 st.write("Die Anwendung basiert auf der fundamentalen Beziehung:")
 st.latex(r"\text{pH} = -\log_{10}([H^+])")
