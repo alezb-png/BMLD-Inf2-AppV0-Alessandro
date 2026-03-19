@@ -117,19 +117,6 @@ class LoginManager:
             try:
                 # Save credentials to app_data
                 self._save_auth_credentials()
-                st.success("Credentials saved successfully")
-                
-                # === NEW CODE: Create user folder on Switch Drive ===
-                username = res[1]
-                st.session_state['username'] = username  # Temporarily set username for save_user_data
-                
-                # Create user folder by saving an initial empty data file
-                import pandas as pd
-                initial_df = pd.DataFrame()
-                self.data_manager.save_user_data(initial_df, 'data.csv')
-                
-                st.success(f"✅ Benutzerordner für '{username}' auf dem Switch Drive erstellt!")
-                # === END OF NEW CODE ===
-                
+                st.success("Credentials saved successfully")  
             except Exception as e:
                 st.error(f"Failed to save credentials: {e}")
