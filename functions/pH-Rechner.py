@@ -9,6 +9,7 @@ def ph_from_concentration(concentration: float) -> float:
     return {
         "Zeitstempel": datetime.now(pytz.timezone('Europe/Zurich')),  # Current swiss time
         "Typ der Berechnung": "pH aus H⁺-Konzentration (mol L⁻¹).",
+        "Eingabe": concentration,
         "Resultat": -math.log10(concentration),
     } 
 
@@ -17,6 +18,7 @@ def concentration_from_ph(ph: float) -> float:
     return {
         "Zeitstempel": datetime.now(pytz.timezone('Europe/Zurich')),  # Current swiss time
         "Typ der Berechnung": "H⁺-Konzentration zu einem pH‑Wert.",
+        "Eingabe": ph,
         "Resultat": 10 ** (-ph),
     } 
 
