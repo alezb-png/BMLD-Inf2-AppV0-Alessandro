@@ -20,14 +20,26 @@ concentration_from_ph = ph_mod.concentration_from_ph
 
 def get_color_for_ph(ph_value):
     """Gibt Farbe basierend auf pH-Wert zurück."""
+    import numpy as np
+    
+    # pH-Wert auf 0-14 begrenzen
+    ph_value = float(ph_value)
+    ph_value = max(0.0, min(14.0, ph_value))
+    
     if ph_value < 7:
-        r = 1 - (ph_value / 7) * 0.5
-        g = ph_value / 7
-        b = 0
+        r = 1.0 - (ph_value / 7.0) * 0.5
+        g = ph_value / 7.0
+        b = 0.0
     else:
-        r = 0
-        g = 1 - ((ph_value - 7) / 7) * 0.5
-        b = (ph_value - 7) / 7
+        r = 0.0
+        g = 1.0 - ((ph_value - 7.0) / 7.0) * 0.5
+        b = (ph_value - 7.0) / 7.0
+    
+    # Farben auf 0-1 Bereich beschränken
+    r = float(np.clip(r, 0.0, 1.0))
+    g = float(np.clip(g, 0.0, 1.0))
+    b = float(np.clip(b, 0.0, 1.0))
+    
     return (r, g, b)
 
 # --- Streamlit UI ---
@@ -66,63 +78,101 @@ with tab2:
     if 'data_df' in st.session_state and not st.session_state['data_df'].empty:
         df = st.session_state['data_df']
         
-        # Filtere nur die Spalte 'Resultat' (pH oder Konzentration Werte)
         if 'Resultat' in df.columns:
-            fig, ax = plt.subplots(figsize=(12, 5))
+            import math
             
-            # Extrahiere pH-Werte (Resultat Spalte)
-            results = df['Resultat'].tolist()
-            indices = list(range(len(results)))
+            # Trenne Daten nach Berechnungstyp
+            ph_calcs = df[df['Typ der Berechnung'].str.contains('pH aus', na=False)] if 'Typ der Berechnung' in df.columns else pd.DataFrame()
+            conc_calcs = df[df['Typ der Berechnung'].str.contains('Konzentration', na=False)] if 'Typ der Berechnung' in df.columns else pd.DataFrame()
             
-            # Bestimme ob es pH-Werte oder Konzentrationen sind
-            # Wenn Werte zwischen 0-14, sind es pH-Werte
-            ph_values = []
-            for val in results:
-                try:
-                    if -2 <= val <= 16:  # pH-Wertebereich
-                        ph_values.append(val)
-                    else:
-                        # Ggf. Konzentrationswert - ähnlich wie pH konvertieren
-                        import math
+            # --- Grafik 1: Konzentration → pH ---
+            if not ph_calcs.empty:
+                st.subheader("📊 Konzentration → pH")
+                
+                fig1, ax1 = plt.subplots(figsize=(12, 5))
+                
+                ph_results = ph_calcs['Resultat'].tolist()
+                indices1 = list(range(len(ph_results)))
+                
+                # Begrenzte pH-Werte
+                ph_values1 = [max(-2, min(16, float(v))) for v in ph_results]
+                
+                # Farben
+                colors1 = [get_color_for_ph(float(ph)) for ph in ph_values1]
+                colors1 = [(float(r), float(g), float(b)) for r, g, b in colors1]
+                
+                ax1.bar(indices1, ph_values1, color=colors1, edgecolor='black', linewidth=1.5)
+                ax1.axhline(y=7, color='gray', linestyle='--', linewidth=2, alpha=0.5, label='Neutral (pH 7)')
+                
+                ax1.set_xlabel('Berechnung #', fontsize=11)
+                ax1.set_ylabel('pH-Wert', fontsize=11)
+                ax1.set_title('Konzentration → pH Berechnungen', fontsize=13, fontweight='bold')
+                ax1.set_ylim(-1, 15)
+                ax1.grid(axis='y', alpha=0.3)
+                ax1.legend()
+                
+                st.pyplot(fig1, use_container_width=True)
+                
+                # Statistiken
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Anzahl", len(ph_values1))
+                with col2:
+                    st.metric("Ø pH", f"{sum(ph_values1)/len(ph_values1):.2f}")
+                with col3:
+                    acidic = sum(1 for x in ph_values1 if x < 7)
+                    st.metric("Saure Werte", acidic)
+            
+            # --- Grafik 2: pH → Konzentration ---
+            if not conc_calcs.empty:
+                st.subheader("📊 pH → Konzentration")
+                
+                fig2, ax2 = plt.subplots(figsize=(12, 5))
+                
+                conc_results = conc_calcs['Resultat'].tolist()
+                indices2 = list(range(len(conc_results)))
+                
+                # Konzentrationswerte zu pH konvertieren für Visualisierung
+                conc_ph_values = []
+                for val in conc_results:
+                    try:
                         if val > 0:
-                            ph = -math.log10(val)
-                            ph_values.append(max(-2, min(16, ph)))
+                            ph = -math.log10(float(val))
+                            conc_ph_values.append(max(-2, min(16, ph)))
                         else:
-                            ph_values.append(7)
-                except:
-                    ph_values.append(7)
+                            conc_ph_values.append(7)
+                    except:
+                        conc_ph_values.append(7)
+                
+                # Farben
+                colors2 = [get_color_for_ph(float(ph)) for ph in conc_ph_values]
+                colors2 = [(float(r), float(g), float(b)) for r, g, b in colors2]
+                
+                ax2.bar(indices2, conc_ph_values, color=colors2, edgecolor='black', linewidth=1.5)
+                ax2.axhline(y=7, color='gray', linestyle='--', linewidth=2, alpha=0.5, label='Neutral (pH 7)')
+                
+                ax2.set_xlabel('Berechnung #', fontsize=11)
+                ax2.set_ylabel('pH-Wert (aus [H⁺])', fontsize=11)
+                ax2.set_title('pH → Konzentration Berechnungen', fontsize=13, fontweight='bold')
+                ax2.set_ylim(-1, 15)
+                ax2.grid(axis='y', alpha=0.3)
+                ax2.legend()
+                
+                st.pyplot(fig2, use_container_width=True)
+                
+                # Statistiken
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Anzahl", len(conc_ph_values))
+                with col2:
+                    st.metric("Ø pH", f"{sum(conc_ph_values)/len(conc_ph_values):.2f}")
+                with col3:
+                    acidic = sum(1 for x in conc_ph_values if x < 7)
+                    st.metric("Saure Werte", acidic)
             
-            # Farben für jeden Wert
-            colors = [get_color_for_ph(ph) for ph in ph_values]
-            
-            # Balkendiagramm
-            bars = ax.bar(indices, ph_values, color=colors, edgecolor='black', linewidth=1.5)
-            
-            # Neutrale Linie hinzufügen
-            ax.axhline(y=7, color='gray', linestyle='--', linewidth=2, alpha=0.5, label='Neutral (pH 7)')
-            
-            ax.set_xlabel('Berechnung #', fontsize=11)
-            ax.set_ylabel('pH-Wert', fontsize=11)
-            ax.set_title('Übersicht deiner berechneten pH-Werte', fontsize=13, fontweight='bold')
-            ax.set_ylim(-1, 15)
-            ax.grid(axis='y', alpha=0.3)
-            ax.legend()
-            
-            st.pyplot(fig, use_container_width=True)
-            
-            # Statistische Informationen
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Anzahl Berechnungen", len(ph_values))
-            with col2:
-                st.metric("Durchschnitt pH", f"{sum(ph_values)/len(ph_values):.2f}")
-            with col3:
-                acidic = sum(1 for x in ph_values if x < 7)
-                st.metric("Saure Werte", acidic)
-        
-        st.divider()
-        st.subheader("Alle Daten")
-        st.dataframe(df, use_container_width=True)
+            st.divider()
+            st.subheader("Alle Daten")
+            st.dataframe(df, use_container_width=True)
         
     else:
         st.info("📊 Noch keine Berechnungen vorhanden. Gehe zum pH-Rechner und erstelle erste Berechnungen!")
