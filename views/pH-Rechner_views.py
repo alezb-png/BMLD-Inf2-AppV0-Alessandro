@@ -51,6 +51,7 @@ if mode == "Konzentration → pH":
     conc = st.number_input(
         "Wasserstoffionenkonzentration [H⁺] (mol/L)",
         min_value=0.0, 
+        value=1e-7,
         format="%.6f", 
         step=1e-6,
         help="Gib eine positive Konzentration im wissenschaftlichen Format ein"
@@ -101,6 +102,7 @@ else:  # pH → Konzentration
         "pH-Wert", 
         min_value=-2.0, 
         max_value=16.0,
+        value=7.0,
         format="%.4f", 
         step=0.1,
         help="Wähle einen pH-Wert zwischen -2 und 16"
