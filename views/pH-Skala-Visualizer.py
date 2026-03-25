@@ -170,16 +170,17 @@ with tab2:
                 colors2 = [get_color_for_ph(float(ph)) for ph in ph_input_values]
                 colors2 = [(float(r), float(g), float(b)) for r, g, b in colors2]
                 
-                # Scatter-Plot: X = pH, Y = Konzentration
-                ax2.scatter(ph_input_values, conc_results, s=100, c=colors2, edgecolor='black', linewidth=1.5, alpha=0.7)
+                # Bar-Plot: X = Anzahl Berechnungen, Y = Konzentration
+                indices2 = list(range(len(conc_results)))
+                ax2.bar(indices2, conc_results, color=colors2, edgecolor='black', linewidth=1.5)
                 
                 # Logarithmische Y-Achse für bessere Visualisierung
                 ax2.set_yscale('log')
                 
-                ax2.set_xlabel('pH-Wert (Eingabe)', fontsize=11)
-                ax2.set_ylabel('[H⁺] Konzentration (mol/L)', fontsize=11)
+                ax2.set_xlabel('Anzahl Berechnungen', fontsize=11)
+                ax2.set_ylabel('Konzentration in mol/l', fontsize=11)
                 ax2.set_title('pH → Konzentration Berechnungen', fontsize=13, fontweight='bold')
-                ax2.grid(True, alpha=0.3, which='both')
+                ax2.grid(axis='y', alpha=0.3)
                 
                 st.pyplot(fig2, use_container_width=True)
                 
