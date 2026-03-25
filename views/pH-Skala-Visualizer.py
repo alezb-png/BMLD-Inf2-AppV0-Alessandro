@@ -1,8 +1,7 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-import numpy as np
-import math
+import pandas as pd
 from pathlib import Path
 import importlib.util
 import sys
@@ -17,295 +16,114 @@ def _load_ph_module():
     return module
 
 ph_mod = _load_ph_module()
-ph_from_concentration = ph_mod.ph_from_concentration
 concentration_from_ph = ph_mod.concentration_from_ph
 
-# Beispiele aus der realen Welt
-REAL_WORLD_EXAMPLES = {
-    "Batteriesäure": 0,
-    "Magensäure": 1.5,
-    "Zitronensaft": 2.0,
-    "Essig": 2.4,
-    "Orangensaft": 3.1,
-    "Tomatensaft": 4.1,
-    "Schwarzer Kaffee": 5.0,
-    "Milch": 6.6,
-    "Reines Wasser": 7.0,
-    "Blut": 7.4,
-    "Seewasser": 8.1,
-    "Natriumbikarbonat": 8.3,
-    "Ammonia-Lösung": 11.0,
-    "Soda-Lye": 13.0,
-    "Flüssiger Natriumhydroxid": 14.0,
-}
+def get_color_for_ph(ph_value):
+    """Gibt Farbe basierend auf pH-Wert zurück."""
+    if ph_value < 7:
+        r = 1 - (ph_value / 7) * 0.5
+        g = ph_value / 7
+        b = 0
+    else:
+        r = 0
+        g = 1 - ((ph_value - 7) / 7) * 0.5
+        b = (ph_value - 7) / 7
+    return (r, g, b)
 
 # --- Streamlit UI ---
-st.header("pH-Skala Visualizer")
-st.write("Eine interaktive Visualisierung der pH-Skala mit praktischen Beispielen")
+st.header("pH-Visualizer")
+st.write("Visualisiere pH-Werte und berechnete Daten")
 
-st.divider()
-
-# Zwei Tabs: Skala-Visualisierung und Berechnung
-tab1, tab2 = st.tabs(["📊 pH-Skala", "🔢 Interaktive Berechnungen"])
+# Tabs: Skala und Daten-Grafik
+tab1, tab2 = st.tabs(["📊 pH-Skala", "📈 Deine Berechnungen"])
 
 with tab1:
-    st.subheader("Die pH-Skala im Detail")
-    st.write("""
-    Die pH-Skala reicht von **0 (sehr sauer)** bis **14 (sehr basisch)**.
-    Ein pH-Wert von **7 ist neutral** (reines Wasser).
-    """)
-    
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.metric("Sauer", "0-7", "H⁺ > OH⁻")
-    with col2:
-        st.metric("Neutral", "7", "H⁺ = OH⁻")
-    with col3:
-        st.metric("Basisch", "7-14", "H⁻ < OH⁻")
-    
-    st.divider()
+    st.subheader("Die pH-Skala")
     
     # Skala visualisieren
-    fig, ax = plt.subplots(figsize=(12, 3))
+    fig, ax = plt.subplots(figsize=(14, 2.5))
     
-    # Farben definieren (Gradient von rot über grün zu blau)
-    colors = []
     for i in range(15):
-        if i < 7:
-            # Rot zu grün (sauer zu neutral)
-            r = 1 - (i / 7) * 0.5
-            g = (i / 7)
-            b = 0
-        else:
-            # Grün zu blau (neutral zu basisch)
-            r = 0
-            g = 1 - ((i - 7) / 7) * 0.5
-            b = (i - 7) / 7
-        colors.append((r, g, b))
-    
-    # Rechtecke für jeden pH-Wert zeichnen
-    for i in range(15):
+        color = get_color_for_ph(i)
         rect = mpatches.Rectangle((i, 0), 1, 1, linewidth=2, 
-                                  edgecolor='black', facecolor=colors[i])
+                                  edgecolor='black', facecolor=color)
         ax.add_patch(rect)
         ax.text(i + 0.5, 0.5, str(i), ha='center', va='center',
-               fontsize=12, fontweight='bold', color='white')
+               fontsize=14, fontweight='bold', color='white')
     
     ax.set_xlim(0, 15)
     ax.set_ylim(0, 1)
     ax.set_aspect('equal')
     ax.axis('off')
-    ax.set_title("pH-Skala (0-14)", fontsize=14, fontweight='bold', pad=20)
+    ax.set_title("pH-Skala (0=Sauer / 7=Neutral / 14=Basisch)", fontsize=13, fontweight='bold')
     
     st.pyplot(fig, use_container_width=True)
-    
-    st.divider()
-    
-    # Beispiele aus der realen Welt
-    st.subheader("Praktische Beispiele aus der realen Welt")
-    
-    col1, col2 = st.columns(2)
-    
-    with col1:
-        st.write("**Saure Lösungen:**")
-        acids = {k: v for k, v in REAL_WORLD_EXAMPLES.items() if v < 7}
-        for substance, ph_value in sorted(acids.items(), key=lambda x: x[1]):
-            st.write(f"• **{substance}**: pH {ph_value}")
-    
-    with col2:
-        st.write("**Basische Lösungen:**")
-        bases = {k: v for k, v in REAL_WORLD_EXAMPLES.items() if v > 7}
-        for substance, ph_value in sorted(bases.items(), key=lambda x: x[1], reverse=True):
-            st.write(f"• **{substance}**: pH {ph_value}")
-    
-    # Beispiel auswählen und visualisieren
-    st.divider()
-    st.write("**Wähle ein Beispiel:**")
-    selected_example = st.selectbox(
-        "Beispiel",
-        options=list(REAL_WORLD_EXAMPLES.keys()),
-        label_visibility="collapsed"
-    )
-    
-    if selected_example:
-        ph_value = REAL_WORLD_EXAMPLES[selected_example]
-        try:
-            concentration_result = concentration_from_ph(ph_value)
-            concentration = concentration_result.get('Resultat', 0)
-            
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                st.metric("Substanz", selected_example)
-            with col2:
-                st.metric("pH-Wert", f"{ph_value:.1f}")
-            with col3:
-                st.metric("[H⁺] Konzentration", f"{concentration:.2e}", "mol/L")
-            
-            # Mini-Skala für diesen Wert
-            fig2, ax2 = plt.subplots(figsize=(10, 2))
-            for i in range(15):
-                if i == ph_value:
-                    rect = mpatches.Rectangle((i, 0), 1, 1, linewidth=3,
-                                            edgecolor='yellow', facecolor=colors[i])
-                else:
-                    rect = mpatches.Rectangle((i, 0), 1, 1, linewidth=1,
-                                            edgecolor='black', facecolor=colors[i])
-                ax2.add_patch(rect)
-                ax2.text(i + 0.5, 0.5, str(i), ha='center', va='center',
-                       fontsize=10, fontweight='bold', color='white')
-            
-            ax2.set_xlim(0, 15)
-            ax2.set_ylim(0, 1)
-            ax2.set_aspect('equal')
-            ax2.axis('off')
-            ax2.set_title(f"Position von {selected_example} (pH {ph_value})", 
-                         fontsize=12, fontweight='bold')
-            
-            st.pyplot(fig2, use_container_width=True)
-            
-        except Exception as e:
-            st.error(f"Fehler bei der Berechnung: {e}")
 
 with tab2:
-    st.subheader("Berechne pH-Wert und Konzentration")
+    st.subheader("Deine berechneten Werte")
     
-    mode = st.radio(
-        "Berechnungsmodus",
-        ("pH → Konzentration", "Konzentration → pH"),
-        horizontal=True
-    )
-    
-    st.divider()
-    
-    if mode == "pH → Konzentration":
-        st.write("Berechne die Wasserstoffionenkonzentration aus einem pH-Wert")
+    # Daten aus session state laden
+    if 'data_df' in st.session_state and not st.session_state['data_df'].empty:
+        df = st.session_state['data_df']
         
-        col1, col2 = st.columns(2)
-        with col1:
-            ph_slider = st.slider(
-                "pH-Wert eingeben",
-                min_value=0.0,
-                max_value=14.0,
-                value=7.0,
-                step=0.1
-            )
+        # Filtere nur die Spalte 'Resultat' (pH oder Konzentration Werte)
+        if 'Resultat' in df.columns:
+            fig, ax = plt.subplots(figsize=(12, 5))
+            
+            # Extrahiere pH-Werte (Resultat Spalte)
+            results = df['Resultat'].tolist()
+            indices = list(range(len(results)))
+            
+            # Bestimme ob es pH-Werte oder Konzentrationen sind
+            # Wenn Werte zwischen 0-14, sind es pH-Werte
+            ph_values = []
+            for val in results:
+                try:
+                    if -2 <= val <= 16:  # pH-Wertebereich
+                        ph_values.append(val)
+                    else:
+                        # Ggf. Konzentrationswert - ähnlich wie pH konvertieren
+                        import math
+                        if val > 0:
+                            ph = -math.log10(val)
+                            ph_values.append(max(-2, min(16, ph)))
+                        else:
+                            ph_values.append(7)
+                except:
+                    ph_values.append(7)
+            
+            # Farben für jeden Wert
+            colors = [get_color_for_ph(ph) for ph in ph_values]
+            
+            # Balkendiagramm
+            bars = ax.bar(indices, ph_values, color=colors, edgecolor='black', linewidth=1.5)
+            
+            # Neutrale Linie hinzufügen
+            ax.axhline(y=7, color='gray', linestyle='--', linewidth=2, alpha=0.5, label='Neutral (pH 7)')
+            
+            ax.set_xlabel('Berechnung #', fontsize=11)
+            ax.set_ylabel('pH-Wert', fontsize=11)
+            ax.set_title('Übersicht deiner berechneten pH-Werte', fontsize=13, fontweight='bold')
+            ax.set_ylim(-1, 15)
+            ax.grid(axis='y', alpha=0.3)
+            ax.legend()
+            
+            st.pyplot(fig, use_container_width=True)
+            
+            # Statistische Informationen
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Anzahl Berechnungen", len(ph_values))
+            with col2:
+                st.metric("Durchschnitt pH", f"{sum(ph_values)/len(ph_values):.2f}")
+            with col3:
+                acidic = sum(1 for x in ph_values if x < 7)
+                st.metric("Saure Werte", acidic)
         
-        with col2:
-            st.write("")
-            st.write("")
-            try:
-                result = concentration_from_ph(ph_slider)
-                concentration = result.get('Resultat', 0)
-                st.metric("H⁺ Konzentration", f"{concentration:.2e} mol/L")
-            except Exception as e:
-                st.error(f"Fehler: {e}")
-        
-        # Visualisierung
         st.divider()
-        fig3, ax3 = plt.subplots(figsize=(10, 4))
+        st.subheader("Alle Daten")
+        st.dataframe(df, use_container_width=True)
         
-        # Skala mit Markierung
-        for i in range(15):
-            if i == int(ph_slider):
-                rect = mpatches.Rectangle((i, 0), 1, 2, linewidth=3,
-                                        edgecolor='yellow', facecolor=colors[i])
-            else:
-                rect = mpatches.Rectangle((i, 0), 1, 2, linewidth=1,
-                                        edgecolor='black', facecolor=colors[i])
-            ax3.add_patch(rect)
-            ax3.text(i + 0.5, 1, str(i), ha='center', va='center',
-                   fontsize=12, fontweight='bold', color='white')
-        
-        # Konzentrations-Kurve
-        ph_values_range = np.linspace(0, 14, 100)
-        concentrations = [10**(-ph) for ph in ph_values_range]
-        
-        # Logarithmische Skala für Visualisierung
-        ax3_twin = ax3.twinx()
-        ax3_twin.semilogy(ph_values_range, concentrations, 'r-', linewidth=2, label='[H⁺] Konzentration')
-        ax3_twin.set_ylabel('[H⁺] Konzentration (mol/L)', fontsize=10, color='red')
-        ax3_twin.tick_params(axis='y', labelcolor='red')
-        ax3_twin.axvline(x=ph_slider, color='yellow', linestyle='--', linewidth=2, alpha=0.7)
-        
-        ax3.set_xlim(0, 15)
-        ax3.set_ylim(0, 2)
-        ax3.set_xticks(range(15))
-        ax3.set_xlabel('pH-Wert', fontsize=12)
-        ax3.set_ylabel('pH-Skala', fontsize=12)
-        ax3.set_title(f'pH-Wert {ph_slider:.1f} → [H⁺] = {concentration:.2e} mol/L',
-                     fontsize=13, fontweight='bold')
-        
-        st.pyplot(fig3, use_container_width=True)
-    
-    else:  # Konzentration → pH
-        st.write("Berechne den pH-Wert aus einer Wasserstoffionenkonzentration")
-        
-        col1, col2 = st.columns(2)
-        with col1:
-            concentration = st.number_input(
-                "H⁺ Konzentration eingeben (mol/L)",
-                min_value=1e-14,
-                max_value=1.0,
-                value=1e-7,
-                format="%.2e"
-            )
-        
-        with col2:
-            st.write("")
-            st.write("")
-            try:
-                result = ph_from_concentration(concentration)
-                ph_value = result.get('Resultat', 0)
-                
-                # Geschwindigkeit der Färbung anpassen
-                sanitized_ph = max(0, min(14, ph_value))
-                st.metric("pH-Wert", f"{sanitized_ph:.2f}")
-            except Exception as e:
-                st.error(f"Fehler: {e}")
-        
-        # Visualisierung
-        st.divider()
-        fig4, ax4 = plt.subplots(figsize=(10, 4))
-        
-        # Skala mit Markierung
-        for i in range(15):
-            if i == int(sanitized_ph):
-                rect = mpatches.Rectangle((i, 0), 1, 2, linewidth=3,
-                                        edgecolor='yellow', facecolor=colors[i])
-            else:
-                rect = mpatches.Rectangle((i, 0), 1, 2, linewidth=1,
-                                        edgecolor='black', facecolor=colors[i])
-            ax4.add_patch(rect)
-            ax4.text(i + 0.5, 1, str(i), ha='center', va='center',
-                   fontsize=12, fontweight='bold', color='white')
-        
-        # Konzentrationslog-Skala
-        concentration_values = np.logspace(-14, 0, 100)
-        ph_values_calc = [-math.log10(c) for c in concentration_values]
-        
-        ax4_twin = ax4.twinx()
-        ax4_twin.loglog(concentration_values, ph_values_calc, 'b-', linewidth=2, label='pH Kurve')
-        ax4_twin.set_ylabel('pH-Wert', fontsize=10, color='blue')
-        ax4_twin.tick_params(axis='y', labelcolor='blue')
-        ax4_twin.axhline(y=sanitized_ph, color='yellow', linestyle='--', linewidth=2, alpha=0.7)
-        
-        ax4.set_xlim(0, 15)
-        ax4.set_ylim(0, 2)
-        ax4.set_xticks(range(15))
-        ax4.set_xlabel('pH-Wert', fontsize=12)
-        ax4.set_ylabel('pH-Skala', fontsize=12)
-        ax4.set_title(f'[H⁺] = {concentration:.2e} mol/L → pH {sanitized_ph:.2f}',
-                     fontsize=13, fontweight='bold')
-        
-        st.pyplot(fig4, use_container_width=True)
+    else:
+        st.info("📊 Noch keine Berechnungen vorhanden. Gehe zum pH-Rechner und erstelle erste Berechnungen!")
 
-st.divider()
-st.info("""
-**Über die pH-Skala:**
-- **pH < 7**: Saure Lösungen (mehr H⁺-Ionen als OH⁻-Ionen)
-- **pH = 7**: Neutrale Lösungen (gleichviele H⁺ und OH⁻-Ionen)
-- **pH > 7**: Basische Lösungen (weniger H⁺-Ionen als OH⁻-Ionen)
-
-Die pH-Skala ist logarithmisch, das heißt: jeder Anstieg um 1 bedeutet eine 10x niedrigere
-Wasserstoffionenkonzentration.
-""")
