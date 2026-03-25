@@ -129,9 +129,13 @@ else:  # pH → Konzentration
         
         st.session_state['data_df'] = pd.concat([st.session_state['data_df'], pd.DataFrame([result])])
 
-    # --- CODE UPDATE: save data to data manager ---
-    data_manager = DataManager()
-    data_manager.save_user_data(st.session_state['data_df'], 'data.csv')
-    # --- END OF CODE UPDATE ---
-
+# --- CODE UPDATE: save data to data manager ---
+data_manager = DataManager()
+data_manager.save_user_data(st.session_state['data_df'], 'data.csv')
+# --- END OF CODE UPDATE ---
 st.dataframe(st.session_state['data_df'])
+
+# --- CODE UPDATE: save data to data manager ---
+data_manager = DataManager()
+data_manager.save_user_data(st.session_state['data_df'], 'data.csv')
+# --- END OF CODE UPDATE ---
