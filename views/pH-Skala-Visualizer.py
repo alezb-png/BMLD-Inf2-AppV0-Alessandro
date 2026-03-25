@@ -82,8 +82,8 @@ with tab2:
             import math
             
             # Trenne Daten nach Berechnungstyp
-            ph_calcs = df[df['Typ der Berechnung'].str.contains('pH aus', na=False)] if 'Typ der Berechnung' in df.columns else pd.DataFrame()
-            conc_calcs = df[df['Typ der Berechnung'].str.contains('Konzentration', na=False)] if 'Typ der Berechnung' in df.columns else pd.DataFrame()
+            ph_calcs = df[df['Typ der Berechnung'].str.contains('pH aus H⁺-Konzentration', na=False)] if 'Typ der Berechnung' in df.columns else pd.DataFrame()
+            conc_calcs = df[df['Typ der Berechnung'].str.contains('H⁺-Konzentration zu', na=False)] if 'Typ der Berechnung' in df.columns else pd.DataFrame()
             
             # --- Grafik 1: Konzentration → pH ---
             if not ph_calcs.empty:
