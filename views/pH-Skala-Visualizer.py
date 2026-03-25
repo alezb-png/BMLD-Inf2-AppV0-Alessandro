@@ -139,8 +139,8 @@ with tab2:
                 for idx, (i, row) in enumerate(ph_calcs.iterrows()):
                     table_display.append({
                         "#": idx + 1,
-                        "[H⁺] Eingabe (mol/L)": f"{10**(-ph_values1[idx]):.2e}",
-                        "Berechneter pH": f"{ph_values1[idx]:.4f}",
+                        "[H⁺] Eingabe (mol/L)": f"{row['Eingabe']:.2e}",
+                        "Berechneter pH": f"{row['Resultat']:.4f}",
                         "Zeitstempel": row['Zeitstempel'].strftime('%H:%M:%S') if 'Zeitstempel' in row else "N/A"
                     })
                 
@@ -154,17 +154,8 @@ with tab2:
                 
                 conc_results = conc_calcs['Resultat'].tolist()
                 
-                # Berechne pH-Eingabewerte aus den Konzentrationsresultaten
-                ph_input_values = []
-                for val in conc_results:
-                    try:
-                        if val > 0:
-                            ph = -math.log10(float(val))
-                            ph_input_values.append(max(-2, min(16, ph)))
-                        else:
-                            ph_input_values.append(7)
-                    except:
-                        ph_input_values.append(7)
+                # pH-Eingabewerte direkt aus DataFrame
+                ph_input_values = conc_calcs['Eingabe'].tolist()
                 
                 # Farben basierend auf pH-Wert
                 colors2 = [get_color_for_ph(float(ph)) for ph in ph_input_values]
@@ -200,7 +191,7 @@ with tab2:
                 for idx, (i, row) in enumerate(conc_calcs.iterrows()):
                     table_conc_display.append({
                         "#": idx + 1,
-                        "pH Eingabe": f"{ph_input_values[idx]:.4f}",
+                        "pH Eingabe": f"{row['Eingabe']:.4f}",
                         "[H⁺] Resultat (mol/L)": f"{row['Resultat']:.2e}",
                         "Zeitstempel": row['Zeitstempel'].strftime('%H:%M:%S') if 'Zeitstempel' in row else "N/A"
                     })
