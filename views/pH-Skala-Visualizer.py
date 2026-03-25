@@ -153,44 +153,44 @@ with tab2:
                 fig2, ax2 = plt.subplots(figsize=(12, 5))
                 
                 conc_results = conc_calcs['Resultat'].tolist()
-                indices2 = list(range(len(conc_results)))
                 
-                # Konzentrationswerte zu pH konvertieren für Visualisierung
-                conc_ph_values = []
+                # Berechne pH-Eingabewerte aus den Konzentrationsresultaten
+                ph_input_values = []
                 for val in conc_results:
                     try:
                         if val > 0:
                             ph = -math.log10(float(val))
-                            conc_ph_values.append(max(-2, min(16, ph)))
+                            ph_input_values.append(max(-2, min(16, ph)))
                         else:
-                            conc_ph_values.append(7)
+                            ph_input_values.append(7)
                     except:
-                        conc_ph_values.append(7)
+                        ph_input_values.append(7)
                 
-                # Farben
-                colors2 = [get_color_for_ph(float(ph)) for ph in conc_ph_values]
+                # Farben basierend auf pH-Wert
+                colors2 = [get_color_for_ph(float(ph)) for ph in ph_input_values]
                 colors2 = [(float(r), float(g), float(b)) for r, g, b in colors2]
                 
-                ax2.bar(indices2, conc_ph_values, color=colors2, edgecolor='black', linewidth=1.5)
-                ax2.axhline(y=7, color='gray', linestyle='--', linewidth=2, alpha=0.5, label='Neutral (pH 7)')
+                # Scatter-Plot: X = pH, Y = Konzentration
+                ax2.scatter(ph_input_values, conc_results, s=100, c=colors2, edgecolor='black', linewidth=1.5, alpha=0.7)
                 
-                ax2.set_xlabel('Berechnung #', fontsize=11)
-                ax2.set_ylabel('pH-Wert (aus [H⁺])', fontsize=11)
+                # Logarithmische Y-Achse für bessere Visualisierung
+                ax2.set_yscale('log')
+                
+                ax2.set_xlabel('pH-Wert (Eingabe)', fontsize=11)
+                ax2.set_ylabel('[H⁺] Konzentration (mol/L)', fontsize=11)
                 ax2.set_title('pH → Konzentration Berechnungen', fontsize=13, fontweight='bold')
-                ax2.set_ylim(-1, 15)
-                ax2.grid(axis='y', alpha=0.3)
-                ax2.legend()
+                ax2.grid(True, alpha=0.3, which='both')
                 
                 st.pyplot(fig2, use_container_width=True)
                 
                 # Statistiken
                 col1, col2, col3 = st.columns(3)
                 with col1:
-                    st.metric("Anzahl", len(conc_ph_values))
+                    st.metric("Anzahl", len(ph_input_values))
                 with col2:
-                    st.metric("Ø pH", f"{sum(conc_ph_values)/len(conc_ph_values):.2f}")
+                    st.metric("Ø pH", f"{sum(ph_input_values)/len(ph_input_values):.2f}")
                 with col3:
-                    acidic = sum(1 for x in conc_ph_values if x < 7)
+                    acidic = sum(1 for x in ph_input_values if x < 7)
                     st.metric("Saure Werte", acidic)
                 
                 # Tabelle für pH → Konzentration
@@ -199,7 +199,7 @@ with tab2:
                 for idx, (i, row) in enumerate(conc_calcs.iterrows()):
                     table_conc_display.append({
                         "#": idx + 1,
-                        "pH Eingabe": f"{-math.log10(row['Resultat']):.4f}" if row['Resultat'] > 0 else "N/A",
+                        "pH Eingabe": f"{ph_input_values[idx]:.4f}",
                         "[H⁺] Resultat (mol/L)": f"{row['Resultat']:.2e}",
                         "Zeitstempel": row['Zeitstempel'].strftime('%H:%M:%S') if 'Zeitstempel' in row else "N/A"
                     })
