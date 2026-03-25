@@ -122,6 +122,29 @@ with tab2:
                 with col3:
                     acidic = sum(1 for x in ph_values1 if x < 7)
                     st.metric("Saure Werte", acidic)
+                
+                # Tabelle für Konzentration → pH
+                st.write("**Tabelle: Konzentration → pH**")
+                table_data = []
+                for idx, (i, row) in enumerate(ph_calcs.iterrows()):
+                    table_data.append({
+                        "#": idx + 1,
+                        "[H⁺] mol/L": f"{row['Resultat']:.2e}" if idx < len(ph_calcs) else "N/A",
+                        "pH": f"{ph_values1[idx]:.4f}" if idx < len(ph_values1) else "N/A",
+                        "Zeitstempel": row['Zeitstempel'].strftime('%H:%M:%S') if 'Zeitstempel' in row else "N/A"
+                    })
+                
+                # Berechne ursprüngliche Konzentrationen aus Resultat
+                table_display = []
+                for idx, (i, row) in enumerate(ph_calcs.iterrows()):
+                    table_display.append({
+                        "#": idx + 1,
+                        "[H⁺] Eingabe (mol/L)": f"{10**(-ph_values1[idx]):.2e}",
+                        "Berechneter pH": f"{ph_values1[idx]:.4f}",
+                        "Zeitstempel": row['Zeitstempel'].strftime('%H:%M:%S') if 'Zeitstempel' in row else "N/A"
+                    })
+                
+                st.dataframe(pd.DataFrame(table_display), use_container_width=True, hide_index=True)
             
             # --- Grafik 2: pH → Konzentration ---
             if not conc_calcs.empty:
@@ -169,10 +192,19 @@ with tab2:
                 with col3:
                     acidic = sum(1 for x in conc_ph_values if x < 7)
                     st.metric("Saure Werte", acidic)
-            
-            st.divider()
-            st.subheader("Alle Daten")
-            st.dataframe(df, use_container_width=True)
+                
+                # Tabelle für pH → Konzentration
+                st.write("**Tabelle: pH → Konzentration**")
+                table_conc_display = []
+                for idx, (i, row) in enumerate(conc_calcs.iterrows()):
+                    table_conc_display.append({
+                        "#": idx + 1,
+                        "pH Eingabe": f"{-math.log10(row['Resultat']):.4f}" if row['Resultat'] > 0 else "N/A",
+                        "[H⁺] Resultat (mol/L)": f"{row['Resultat']:.2e}",
+                        "Zeitstempel": row['Zeitstempel'].strftime('%H:%M:%S') if 'Zeitstempel' in row else "N/A"
+                    })
+                
+                st.dataframe(pd.DataFrame(table_conc_display), use_container_width=True, hide_index=True)
         
     else:
         st.info("📊 Noch keine Berechnungen vorhanden. Gehe zum pH-Rechner und erstelle erste Berechnungen!")
