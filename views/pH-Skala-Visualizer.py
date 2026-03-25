@@ -148,55 +148,61 @@ with tab2:
             
             # --- Grafik 2: pH → Konzentration ---
             if not conc_calcs.empty:
-                st.subheader("📊 pH → Konzentration")
-                
-                fig2, ax2 = plt.subplots(figsize=(12, 5))
-                
-                conc_results = conc_calcs['Resultat'].tolist()
-                
-                # pH-Eingabewerte direkt aus DataFrame
-                ph_input_values = conc_calcs['Eingabe'].tolist()
-                
-                # Farben basierend auf pH-Wert
-                colors2 = [get_color_for_ph(float(ph)) for ph in ph_input_values]
-                colors2 = [(float(r), float(g), float(b)) for r, g, b in colors2]
-                
-                # Bar-Plot: X = Anzahl Berechnungen, Y = Konzentration
-                indices2 = list(range(len(conc_results)))
-                ax2.bar(indices2, conc_results, color=colors2, edgecolor='black', linewidth=1.5)
-                
-                # Logarithmische Y-Achse für bessere Visualisierung
-                ax2.set_yscale('log')
-                
-                ax2.set_xlabel('Anzahl Berechnungen', fontsize=11)
-                ax2.set_ylabel('Konzentration in mol/l', fontsize=11)
-                ax2.set_title('pH → Konzentration Berechnungen', fontsize=13, fontweight='bold')
-                ax2.grid(axis='y', alpha=0.3)
-                
-                st.pyplot(fig2, use_container_width=True)
-                
-                # Statistiken
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("Anzahl", len(ph_input_values))
-                with col2:
-                    st.metric("Ø pH", f"{sum(ph_input_values)/len(ph_input_values):.2f}")
-                with col3:
-                    acidic = sum(1 for x in ph_input_values if x < 7)
-                    st.metric("Saure Werte", acidic)
-                
-                # Tabelle für pH → Konzentration
-                st.write("**Tabelle: pH → Konzentration**")
-                table_conc_display = []
-                for idx, (i, row) in enumerate(conc_calcs.iterrows()):
-                    table_conc_display.append({
-                        "#": idx + 1,
-                        "pH Eingabe": f"{row['Eingabe']:.4f}",
-                        "[H⁺] Resultat (mol/L)": f"{row['Resultat']:.2e}",
-                        "Zeitstempel": row['Zeitstempel'].strftime('%H:%M:%S') if 'Zeitstempel' in row else "N/A"
-                    })
-                
-                st.dataframe(pd.DataFrame(table_conc_display), use_container_width=True, hide_index=True)
+                # pH == 0 Werte aus dem Visualizer und der Tabelle entfernen
+                conc_calcs_filtered = conc_calcs[conc_calcs['Eingabe'] != 0].copy()
+
+                if conc_calcs_filtered.empty:
+                    st.warning("📌 Alle pH → Konzentration Werte sind ph=0; keine Grafiken/Tabelle werden angezeigt.")
+                else:
+                    st.subheader("📊 pH → Konzentration")
+                    
+                    fig2, ax2 = plt.subplots(figsize=(12, 5))
+                    
+                    conc_results = conc_calcs_filtered['Resultat'].tolist()
+                    
+                    # pH-Eingabewerte direkt aus DataFrame
+                    ph_input_values = conc_calcs_filtered['Eingabe'].tolist()
+                    
+                    # Farben basierend auf pH-Wert
+                    colors2 = [get_color_for_ph(float(ph)) for ph in ph_input_values]
+                    colors2 = [(float(r), float(g), float(b)) for r, g, b in colors2]
+
+                    # Bar-Plot: X = Anzahl Berechnungen, Y = Konzentration
+                    indices2 = list(range(len(conc_results)))
+                    ax2.bar(indices2, conc_results, color=colors2, edgecolor='black', linewidth=1.5)
+                    
+                    # Logarithmische Y-Achse für bessere Visualisierung
+                    ax2.set_yscale('log')
+                    
+                    ax2.set_xlabel('Anzahl Berechnungen', fontsize=11)
+                    ax2.set_ylabel('Konzentration in mol/l', fontsize=11)
+                    ax2.set_title('pH → Konzentration Berechnungen', fontsize=13, fontweight='bold')
+                    ax2.grid(axis='y', alpha=0.3)
+                    
+                    st.pyplot(fig2, use_container_width=True)
+                    
+                    # Statistiken
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Anzahl", len(ph_input_values))
+                    with col2:
+                        st.metric("Ø pH", f"{sum(ph_input_values)/len(ph_input_values):.2f}")
+                    with col3:
+                        acidic = sum(1 for x in ph_input_values if x < 7)
+                        st.metric("Saure Werte", acidic)
+                    
+                    # Tabelle für pH → Konzentration
+                    st.write("**Tabelle: pH → Konzentration**")
+                    table_conc_display = []
+                    for idx, (i, row) in enumerate(conc_calcs_filtered.iterrows()):
+                        table_conc_display.append({
+                            "#": idx + 1,
+                            "pH Eingabe": f"{row['Eingabe']:.4f}",
+                            "[H⁺] Resultat (mol/L)": f"{row['Resultat']:.2e}",
+                            "Zeitstempel": row['Zeitstempel'].strftime('%H:%M:%S') if 'Zeitstempel' in row else "N/A"
+                        })
+                    
+                    st.dataframe(pd.DataFrame(table_conc_display), use_container_width=True, hide_index=True)
         
     else:
         st.info("📊 Noch keine Berechnungen vorhanden. Gehe zum pH-Rechner und erstelle erste Berechnungen!")
